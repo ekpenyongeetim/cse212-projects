@@ -26,6 +26,7 @@ public static class ArraysTester {
         RotateListRight(numbers, 9);
         Console.WriteLine($"<List>{{{string.Join(',', numbers)}}}"); // <List>{1, 2, 3, 4, 5, 6, 7, 8, 9}
     }
+    
     /// <summary>
     /// This function will produce a list of size 'length' starting with 'number' followed by multiples of 'number'.  For 
     /// example, MultiplesOf(7, 5) will result in: {7, 14, 21, 28, 35}.  Assume that length is a positive
@@ -34,14 +35,19 @@ public static class ArraysTester {
     /// <returns>array of doubles that are the multiples of the supplied number</returns>
     private static double[] MultiplesOf(double number, int length)
     {
-        // TODO Problem 1 Start
-        // Remember: Using comments in your program, write down your process for solving this problem
-        // step by step before you write the code. The plan should be clear enough that it could
-        // be implemented by another person.
-
-        return new double[0]; // replace this return statement with your own
+        // Initialize an array length to hold the multiples.
+        double[] multiples = new double[length];
+        
+        // Use a loop to generate multiples of number.
+        for (int i = 0; i < length; i++) {
+            // Step 3: Multiply 'number' by (i + 1) to get each multiple and store it in the array.
+            multiples[i] = number * (i + 1);
+        }
+        
+        //  Return the array containing the multiples.
+        return multiples;
     }
-    
+
     /// <summary>
     /// Rotate the 'data' to the right by the 'amount'.  For example, if the data is 
     /// <c>&lt;List&gt;{1, 2, 3, 4, 5, 6, 7, 8, 9}</c> and an amount is 3 then the list returned should be 
@@ -52,10 +58,22 @@ public static class ArraysTester {
     /// </summary>
     private static void RotateListRight(List<int> data, int amount)
     {
-        // TODO Problem 2 Start
-        // Remember: Using comments in your program, write down your process for solving this problem
-        // step by step before you write the code. The plan should be clear enough that it could
-        // be implemented by another person.
+        // Determine the effective amount by taking modulus with data.Count
+        amount = amount % data.Count;
 
+        // Create a temporary list to hold the rotated elements
+        List<int> rotated = new List<int>();
+
+        // Add the last amount elements from data to the start of rotated
+        rotated.AddRange(data.GetRange(data.Count - amount, amount));
+
+        // Step 4: Add the remaining elements from the start of data to rotated
+        rotated.AddRange(data.GetRange(0, data.Count - amount));
+
+        // Step 5: Copy the elements from 'rotated' back to data
+        for (int i = 0; i < data.Count; i++) {
+            data[i] = rotated[i];
+        }
     }
+
 }
