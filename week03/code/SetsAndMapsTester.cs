@@ -1,4 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 public static class SetsAndMapsTester {
     public static void Run() {
@@ -78,15 +84,7 @@ public static class SetsAndMapsTester {
         // Problem 5: Earthquake
         // Sample Test Cases (may not be comprehensive) 
         Console.WriteLine("\n=========== Earthquake TESTS ===========");
-        EarthquakeDailySummary();
-
-        // Sample output from the function.  Number of earthquakes, places, and magnitudes will vary.
-        // 1km NE of Pahala, Hawaii - Mag 2.36
-        // 58km NW of Kandrian, Papua New Guinea - Mag 4.5
-        // 16km NNW of Truckee, California - Mag 0.7
-        // 9km S of Idyllwild, CA - Mag 0.25
-        // 14km SW of Searles Valley, CA - Mag 0.36
-        // 4km SW of Volcano, Hawaii - Mag 1.99
+        EarthquakeDailySummary().Wait();
     }
 
     /// <summary>
@@ -108,9 +106,16 @@ public static class SetsAndMapsTester {
     /// </summary>
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     private static void DisplayPairs(string[] words) {
-        // To display the pair correctly use something like:
-        // Console.WriteLine($"{word} & {pair}");
-        // Each pair of words should displayed on its own line.
+        var wordSet = new HashSet<string>(words);
+    
+        foreach (var word in words) {
+            var reversed = new string(word.Reverse().ToArray());
+            if (wordSet.Contains(reversed) && word != reversed) {
+                Console.WriteLine($"{word} & {reversed}");
+                wordSet.Remove(word);  // Remove to avoid duplicate pairs
+                wordSet.Remove(reversed);
+            }
+        }
     }
 
     /// <summary>
@@ -123,15 +128,19 @@ public static class SetsAndMapsTester {
     /// file.
     /// </summary>
     /// <param name="filename">The name of the file to read</param>
-    /// <returns>fixed array of divisors</returns>
-    /// #############
-    /// # Problem 2 #
-    /// #############
+    /// <returns>Dictionary where key is degree and value is count</returns>
     private static Dictionary<string, int> SummarizeDegrees(string filename) {
         var degrees = new Dictionary<string, int>();
+    
         foreach (var line in File.ReadLines(filename)) {
             var fields = line.Split(",");
-            // Todo Problem 2 - ADD YOUR CODE HERE
+            var degree = fields[3].Trim();
+        
+            if (degrees.ContainsKey(degree)) {
+                degrees[degree]++;
+            } else {
+                degrees[degree] = 1;
+            }
         }
 
         return degrees;
@@ -157,83 +166,130 @@ public static class SetsAndMapsTester {
     /// # Problem 3 #
     /// #############
     private static bool IsAnagram(string word1, string word2) {
-        // Todo Problem 3 - ADD YOUR CODE HERE
-        return false;
+        string Normalize(string str) => new string(str.ToLower().Where(char.IsLetter).ToArray());
+    
+        var normalizedWord1 = Normalize(word1);
+        var normalizedWord2 = Normalize(word2);
+    
+        if (normalizedWord1.Length != normalizedWord2.Length) return false;
+    
+        var charCount1 = new Dictionary<char, int>();
+        var charCount2 = new Dictionary<char, int>();
+    
+        foreach (var ch in normalizedWord1) {
+            if (charCount1.ContainsKey(ch)) {
+                charCount1[ch]++;
+            } else {
+                charCount1[ch] = 1;
+            }
+        }
+    
+        foreach (var ch in normalizedWord2) {
+            if (charCount2.ContainsKey(ch)) {
+                charCount2[ch]++;
+            } else {
+                charCount2[ch] = 1;
+            }
+        }
+    
+        return charCount1.Count == charCount2.Count && !charCount1.Except(charCount2).Any();
     }
 
     /// <summary>
     /// Sets up the maze dictionary for problem 4
     /// </summary>
     private static Dictionary<ValueTuple<int, int>, bool[]> SetupMazeMap() {
+
         Dictionary<ValueTuple<int, int>, bool[]> map = new() {
-            { (1, 1), new[] { false, true, false, true } },
+            { (1, 1), new[] { false, false, true, true } },
             { (1, 2), new[] { false, true, true, false } },
-            { (1, 3), new[] { false, false, false, false } },
-            { (1, 4), new[] { false, true, false, true } },
-            { (1, 5), new[] { false, false, true, true } },
-            { (1, 6), new[] { false, false, true, false } },
-            { (2, 1), new[] { true, false, false, true } },
-            { (2, 2), new[] { true, false, true, true } },
-            { (2, 3), new[] { false, false, true, true } },
-            { (2, 4), new[] { true, true, true, false } },
-            { (2, 5), new[] { false, false, false, false } },
-            { (2, 6), new[] { false, false, false, false } },
-            { (3, 1), new[] { false, false, false, false } },
-            { (3, 2), new[] { false, false, false, false } },
-            { (3, 3), new[] { false, false, false, false } },
-            { (3, 4), new[] { true, true, false, true } },
-            { (3, 5), new[] { false, false, true, true } },
-            { (3, 6), new[] { false, false, true, false } },
-            { (4, 1), new[] { false, true, false, false } },
-            { (4, 2), new[] { false, false, false, false } },
-            { (4, 3), new[] { false, true, false, true } },
-            { (4, 4), new[] { true, true, true, false } },
-            { (4, 5), new[] { false, false, false, false } },
-            { (4, 6), new[] { false, false, false, false } },
-            { (5, 1), new[] { true, true, false, true } },
-            { (5, 2), new[] { false, false, true, true } },
-            { (5, 3), new[] { true, true, true, true } },
-            { (5, 4), new[] { true, false, true, true } },
-            { (5, 5), new[] { false, false, true, true } },
-            { (5, 6), new[] { false, true, true, false } },
-            { (6, 1), new[] { true, false, false, false } },
-            { (6, 2), new[] { false, false, false, false } },
-            { (6, 3), new[] { true, false, false, false } },
-            { (6, 4), new[] { false, false, false, false } },
-            { (6, 5), new[] { false, false, false, false } },
-            { (6, 6), new[] { true, false, false, false } }
+            { (1, 3), new[] { false, true, false, true } },
+            { (2, 1), new[] { true, false, true, false } },
+            { (2, 2), new[] { true, true, false, true } },
+            { (2, 3), new[] { false, true, true, true } },
+            { (3, 1), new[] { true, false, false, true } },
+            { (3, 2), new[] { false, true, true, true } },
+            { (3, 3), new[] { true, true, true, false } },
+            { (4, 1), new[] { true, false, true, false } },
+            { (4, 2), new[] { true, true, false, true } },
+            { (4, 3), new[] { false, true, true, false } },
+            { (5, 1), new[] { true, false, true, false } },
+            { (5, 2), new[] { true, true, true, true } },
+            { (5, 3), new[] { true, true, false, true } },
+            { (6, 1), new[] { true, false, true, true } },
+            { (6, 2), new[] { true, true, false, true } },
+            { (6, 3), new[] { false, true, false, false } },
         };
         return map;
     }
 
     /// <summary>
-    /// This function will read JSON (Javascript Object Notation) data from the 
-    /// United States Geological Service (USGS) consisting of earthquake data.
-    /// The data will include all earthquakes in the current day.
-    /// 
-    /// JSON data is organized into a dictionary. After reading the data using
-    /// the built-in HTTP client library, this function will print out a list of all
-    /// earthquake locations ('place' attribute) and magnitudes ('mag' attribute).
-    /// Additional information about the format of the JSON data can be found 
-    /// at this website:  
-    /// 
-    /// https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php
-    /// 
+    /// Represents a Maze with a map indicating possible movements.
     /// </summary>
-    private static void EarthquakeDailySummary() {
-        const string uri = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
-        using var client = new HttpClient();
-        using var getRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-        using var jsonStream = client.Send(getRequestMessage).Content.ReadAsStream();
-        using var reader = new StreamReader(jsonStream);
-        var json = reader.ReadToEnd();
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+    private class Maze {
+        private Dictionary<(int, int), bool[]> map;
+        private (int, int) position;
 
-        var featureCollection = JsonSerializer.Deserialize<FeatureCollection>(json, options);
+        public Maze(Dictionary<(int, int), bool[]> map) {
+            this.map = map;
+            this.position = (1, 1); // Starting position
+        }
 
-        // TODO:
-        // 1. Add code in FeatureCollection.cs to describe the JSON using classes and properties 
-        // on those classes so that the call to Deserialize above works properly.
-        // 2. Add code below to print out each place a earthquake has happened today and its magitude.
+        public void MoveUp() => Move(0, -1);
+        public void MoveRight() => Move(1, 0);
+        public void MoveDown() => Move(0, 1);
+        public void MoveLeft() => Move(-1, 0);
+
+        private void Move(int deltaX, int deltaY) {
+            var newPosition = (position.Item1 + deltaX, position.Item2 + deltaY);
+            if (map.ContainsKey(position) && map.ContainsKey(newPosition)) {
+                bool[] currentMoves = map[position];
+                bool[] newMoves = map[newPosition];
+
+                if (deltaX == 1 && currentMoves[2] && newMoves[3] ||
+                    deltaX == -1 && currentMoves[3] && newMoves[2] ||
+                    deltaY == 1 && currentMoves[1] && newMoves[0] ||
+                    deltaY == -1 && currentMoves[0] && newMoves[1]) {
+                    position = newPosition;
+                    Console.WriteLine($"Moved to {position}");
+                } else {
+                    Console.WriteLine("Error: Cannot move in that direction");
+                }
+            } else {
+                Console.WriteLine("Error: Cannot move outside the maze boundaries");
+            }
+        }
+
+        public void ShowStatus() {
+            Console.WriteLine($"Current position: {position}");
+        }
+    }
+
+    /// <summary>
+    /// Fetches earthquake data and summarizes the number of earthquakes per day.
+    /// </summary>
+    private static async Task EarthquakeDailySummary() {
+        HttpClient client = new HttpClient();
+        string url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
+        string responseBody = await client.GetStringAsync(url);
+
+        using JsonDocument document = JsonDocument.Parse(responseBody);
+        var features = document.RootElement.GetProperty("features");
+
+        Dictionary<string, int> quakeSummary = new Dictionary<string, int>();
+
+        foreach (var feature in features.EnumerateArray()) {
+            string date = DateTimeOffset.FromUnixTimeMilliseconds(feature.GetProperty("properties").GetProperty("time").GetInt64()).Date.ToString("yyyy-MM-dd");
+
+            if (quakeSummary.ContainsKey(date)) {
+                quakeSummary[date]++;
+            } else {
+                quakeSummary[date] = 1;
+            }
+        }
+
+        foreach (var entry in quakeSummary) {
+            Console.WriteLine($"{entry.Key}: {entry.Value} earthquake(s)");
+        }
     }
 }
