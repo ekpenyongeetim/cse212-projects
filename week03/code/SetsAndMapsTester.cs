@@ -198,98 +198,96 @@ public static class SetsAndMapsTester {
     /// <summary>
     /// Sets up the maze dictionary for problem 4
     /// </summary>
-    private static Dictionary<ValueTuple<int, int>, bool[]> SetupMazeMap() {
+    private static Dictionary<(int, int), bool[]> SetupMazeMap() {
+        var map = new Dictionary<(int, int), bool[]>();
+        
+        // Maze layout
+        // The map is set up with a tuple as key representing the coordinates and a bool array representing [up, right, down, left] movements
+        map[(1, 1)] = new bool[] { false, true, true, false };
+        map[(1, 2)] = new bool[] { false, false, true, true };
+        map[(2, 1)] = new bool[] { true, true, true, false };
+        map[(2, 2)] = new bool[] { true, false, false, true };
+        map[(2, 3)] = new bool[] { false, true, true, false };
+        map[(3, 1)] = new bool[] { true, true, true, false };
+        map[(3, 3)] = new bool[] { true, false, true, true };
+        map[(4, 1)] = new bool[] { true, true, false, false };
+        map[(4, 2)] = new bool[] { false, true, true, true };
+        map[(4, 3)] = new bool[] { true, true, true, false };
+        map[(4, 4)] = new bool[] { false, true, true, true };
+        map[(5, 1)] = new bool[] { true, true, false, false };
+        map[(5, 4)] = new bool[] { true, true, true, false };
+        map[(5, 5)] = new bool[] { false, false, true, true };
+        map[(6, 1)] = new bool[] { true, false, false, false };
+        map[(6, 4)] = new bool[] { true, true, false, false };
+        map[(6, 5)] = new bool[] { true, false, true, true };
+        map[(6, 6)] = new bool[] { false, false, true, false };
 
-        Dictionary<ValueTuple<int, int>, bool[]> map = new() {
-            { (1, 1), new[] { false, false, true, true } },
-            { (1, 2), new[] { false, true, true, false } },
-            { (1, 3), new[] { false, true, false, true } },
-            { (2, 1), new[] { true, false, true, false } },
-            { (2, 2), new[] { true, true, false, true } },
-            { (2, 3), new[] { false, true, true, true } },
-            { (3, 1), new[] { true, false, false, true } },
-            { (3, 2), new[] { false, true, true, true } },
-            { (3, 3), new[] { true, true, true, false } },
-            { (4, 1), new[] { true, false, true, false } },
-            { (4, 2), new[] { true, true, false, true } },
-            { (4, 3), new[] { false, true, true, false } },
-            { (5, 1), new[] { true, false, true, false } },
-            { (5, 2), new[] { true, true, true, true } },
-            { (5, 3), new[] { true, true, false, true } },
-            { (6, 1), new[] { true, false, true, true } },
-            { (6, 2), new[] { true, true, false, true } },
-            { (6, 3), new[] { false, true, false, false } },
-        };
         return map;
     }
 
-    /// <summary>
-    /// Represents a Maze with a map indicating possible movements.
-    /// </summary>
-    private class Maze {
-        private Dictionary<(int, int), bool[]> map;
-        private (int, int) position;
+    public class Maze {
+        private readonly Dictionary<(int, int), bool[]> map;
+        private (int, int) currentPosition;
 
         public Maze(Dictionary<(int, int), bool[]> map) {
             this.map = map;
-            this.position = (1, 1); // Starting position
+            currentPosition = (1, 1); // Start at position (1,1)
         }
 
-        public void MoveUp() => Move(0, -1);
-        public void MoveRight() => Move(1, 0);
-        public void MoveDown() => Move(0, 1);
-        public void MoveLeft() => Move(-1, 0);
+        public void MoveUp() => Move(0, -1, "up");
+        public void MoveRight() => Move(1, 0, "right");
+        public void MoveDown() => Move(0, 1, "down");
+        public void MoveLeft() => Move(-1, 0, "left");
 
-        private void Move(int deltaX, int deltaY) {
-            var newPosition = (position.Item1 + deltaX, position.Item2 + deltaY);
-            if (map.ContainsKey(position) && map.ContainsKey(newPosition)) {
-                bool[] currentMoves = map[position];
-                bool[] newMoves = map[newPosition];
+        private void Move(int x, int y, string direction) {
+            var (currentX, currentY) = currentPosition;
+            var newX = currentX + x;
+            var newY = currentY + y;
 
-                if (deltaX == 1 && currentMoves[2] && newMoves[3] ||
-                    deltaX == -1 && currentMoves[3] && newMoves[2] ||
-                    deltaY == 1 && currentMoves[1] && newMoves[0] ||
-                    deltaY == -1 && currentMoves[0] && newMoves[1]) {
-                    position = newPosition;
-                    Console.WriteLine($"Moved to {position}");
+            if (map.TryGetValue(currentPosition, out var canMove)) {
+                bool canMoveDirection = direction switch {
+                    "up" => canMove[0],
+                    "right" => canMove[1],
+                    "down" => canMove[2],
+                    "left" => canMove[3],
+                    _ => false
+                };
+
+                if (canMoveDirection && map.ContainsKey((newX, newY))) {
+                    currentPosition = (newX, newY);
+                    Console.WriteLine($"Moved {direction} to ({newX}, {newY})");
                 } else {
-                    Console.WriteLine("Error: Cannot move in that direction");
+                    Console.WriteLine($"Error: Cannot move in that direction");
                 }
             } else {
-                Console.WriteLine("Error: Cannot move outside the maze boundaries");
+                Console.WriteLine("Error: Invalid current position");
             }
         }
 
         public void ShowStatus() {
-            Console.WriteLine($"Current position: {position}");
+            Console.WriteLine($"Current position: {currentPosition}");
         }
     }
 
     /// <summary>
-    /// Fetches earthquake data and summarizes the number of earthquakes per day.
+    /// Fetches and displays the daily summary of earthquakes
     /// </summary>
     private static async Task EarthquakeDailySummary() {
-        HttpClient client = new HttpClient();
-        string url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson";
-        string responseBody = await client.GetStringAsync(url);
+        var client = new HttpClient();
+        var response = await client.GetStringAsync("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson");
 
-        using JsonDocument document = JsonDocument.Parse(responseBody);
-        var features = document.RootElement.GetProperty("features");
+        var earthquakes = JsonDocument.Parse(response).RootElement.GetProperty("features").EnumerateArray()
+            .Select(e => new {
+                Magnitude = e.GetProperty("properties").GetProperty("mag").GetDecimal(),
+                Place = e.GetProperty("properties").GetProperty("place").GetString()
+            })
+            .OrderByDescending(e => e.Magnitude)
+            .Take(10);
 
-        Dictionary<string, int> quakeSummary = new Dictionary<string, int>();
-
-        foreach (var feature in features.EnumerateArray()) {
-            string date = DateTimeOffset.FromUnixTimeMilliseconds(feature.GetProperty("properties").GetProperty("time").GetInt64()).Date.ToString("yyyy-MM-dd");
-
-            if (quakeSummary.ContainsKey(date)) {
-                quakeSummary[date]++;
-            } else {
-                quakeSummary[date] = 1;
-            }
-        }
-
-        foreach (var entry in quakeSummary) {
-            Console.WriteLine($"{entry.Key}: {entry.Value} earthquake(s)");
+        Console.WriteLine("Top 10 Earthquakes in the last 24 hours:");
+        foreach (var earthquake in earthquakes) {
+            Console.WriteLine($"Magnitude: {earthquake.Magnitude}, Place: {earthquake.Place}");
         }
     }
 }
+
